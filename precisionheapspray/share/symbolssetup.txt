@@ -1,0 +1,2 @@
+.sympath srv*c:\Symbols*http://msdl.microsoft.com/download/symbols
+.reload

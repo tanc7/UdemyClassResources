@@ -1,0 +1,5 @@
+root@kali:~/Documents/exploitdev-udemy/acrobatics# msf-nasm_shell 
+nasm > jmp $-250
+00000000  E901FFFFFF        jmp 0xffffff06
+nasm > 
+

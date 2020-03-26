@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Peach xmlns="http://peachfuzzer.com/2012/Peach" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://peachfuzzer.com/2012/Peach ../peach.xsd">
+	
+	<!-- Define our file format DDL -->
+	<DataModel name="M3UFileFormat">
+	
+		<Block name="Files" minOccurs="1" maxOccurs="1024" mutable="false">
+		<String name="filename" value="AAA" />
+		
+    </Block>
+	
+	
+	</DataModel>
+	
+	<!-- Define a simple state machine that will write the file -->
+	
+	<StateModel name="State" initialState="Initial">
+    <State name="Initial">
+      <Action type="output">
+        <DataModel ref="M3UFileFormat"/>
+        <Data name="data" fileName="C:\peachfuzz\minset\test.m3u"/>
+      </Action>
+      <Action type="close"/>
+      <Action type="call" method="CoolPlayer" publisher="Peach.Agent"/>
+        </State>
+  </StateModel>
+ 
+  <Agent name="LocalAgent">
+    <Monitor class="WindowsDebugger">
+      <Param name="CommandLine" value="C:\Users\ptlabmachine\Desktop\CoolPlayer+Portable\App\CoolPlayer+\coolplayer+.exe C:\Users\ptlabmachine\Desktop\peach-3.1.124-win-x86-debug(1)\fuzzed.m3u"/>
+      <Param name="StartOnCall" value="CoolPlayer"/>
+    </Monitor>
+    <Monitor class="PageHeap">
+      <Param name="Executable" value="coolplayer+.exe"/>
+    </Monitor>
+  </Agent>
+	
+	
+	 <Test name="Default">
+ 
+    <Agent ref="LocalAgent"/>
+    <StateModel ref="State"/>
+  
+    <Publisher class="File">
+      <Param name="FileName" value="fuzzed.m3u" />
+    </Publisher>
+	<Strategy class="Sequential" />
+	
+		<Logger class="File">
+    <Param name="Path" value="C:\peachfuzz\coolplayer.log" />
+</Logger>
+  </Test>
+ 
+	
+</Peach>
+<!-- end -->

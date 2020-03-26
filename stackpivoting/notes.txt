@@ -1,0 +1,12 @@
+# 0x00400850    1 6            sym.imp.foothold_function       │
+# 0x00400996    1 165          main                            │
+# 0x00400800    1 6            sym.imp.puts                    │
+# 0x00400850    1 6            sym.imp.foothold_function
+
+# 0x00602048 0x00002048 SET_64 foothold_function               │
+
+0x0000000000400b00: pop rax; ret; 
+0x0000000000400b05: mov rax, qword ptr [rax]; ret;                            │
+0x0000000000400b09: add rax, rbp; ret;                                        │
+0x0000000000400900: pop rbp; ret;                                             │
+0x000000000040098e: call rax;                                                 │

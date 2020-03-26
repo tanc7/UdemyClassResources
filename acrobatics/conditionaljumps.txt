@@ -1,0 +1,14 @@
+nasm > jmp $-200
+00000000  E933FFFFFF        jmp 0xffffff38
+nasm > jmp $-126
+00000000  EB80              jmp short 0xffffff82
+nasm > jmp $-127
+00000000  E97CFFFFFF        jmp 0xffffff81
+nasm > jmp $-125
+00000000  EB81              jmp short 0xffffff83
+nasm > jmp $-126
+00000000  EB80              jmp short 0xffffff82
+nasm > jz $-55
+00000000  74C7              jz 0xffffffc9
+nasm > jnz $-55
+00000000  75C7              jnz 0xffffffc9

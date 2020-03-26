@@ -1,0 +1,7 @@
+root@kali:~/Documents/exploitdev-udemy/aslrbypassstackpivots# msf-nasm_shell 
+nasm > jmp $+299
+00000000  E926010000        jmp 0x12b
+nasm > jmp $-299
+00000000  E9D0FEFFFF        jmp 0xfffffed5
+nasm > 
+
